@@ -253,7 +253,7 @@ pub enum GenerateSubcommands {
         #[arg(
             long,
             default_value = "false",
-            long_help = "Re-export generated enum definitions in the Entities that use them.\n\
+            long_help = "Re-export generated enum definitions in the entity modules that use them.\n\
             Generated entities will `pub use` any required active enum types."
         )]
         pub_use_enums: bool,
