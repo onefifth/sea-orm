@@ -380,6 +380,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &None,
                     false,

@@ -252,6 +252,14 @@ pub enum GenerateSubcommands {
 
         #[arg(
             long,
+            default_value = "false",
+            long_help = "Re-export generated enum definitions in the Entities that use them.\n\
+            Generated entities will `pub use` any required active enum types."
+        )]
+        pub_use_enums: bool,
+
+        #[arg(
+            long,
             default_value_t,
             value_enum,
             help = "The datetime crate to use for generating entities."

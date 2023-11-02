@@ -40,6 +40,7 @@ pub struct EntityWriterContext {
     pub(crate) expanded_format: bool,
     pub(crate) with_serde: WithSerde,
     pub(crate) with_copy_enums: bool,
+    pub(crate) pub_use_enums: bool,
     pub(crate) date_time_crate: DateTimeCrate,
     pub(crate) schema_name: Option<String>,
     pub(crate) lib: bool,
@@ -136,6 +137,7 @@ impl EntityWriterContext {
         expanded_format: bool,
         with_serde: WithSerde,
         with_copy_enums: bool,
+        pub_use_enums: bool,
         date_time_crate: DateTimeCrate,
         schema_name: Option<String>,
         lib: bool,
@@ -149,6 +151,7 @@ impl EntityWriterContext {
             expanded_format,
             with_serde,
             with_copy_enums,
+            pub_use_enums,
             date_time_crate,
             schema_name,
             lib,
@@ -206,6 +209,7 @@ impl EntityWriter {
                     Self::gen_expanded_code_blocks(
                         entity,
                         &context.with_serde,
+                        context.pub_use_enums,
                         &context.date_time_crate,
                         &context.schema_name,
                         serde_skip_deserializing_primary_key,
@@ -218,6 +222,7 @@ impl EntityWriter {
                     Self::gen_compact_code_blocks(
                         entity,
                         &context.with_serde,
+                        context.pub_use_enums,
                         &context.date_time_crate,
                         &context.schema_name,
                         serde_skip_deserializing_primary_key,
@@ -322,6 +327,7 @@ impl EntityWriter {
     pub fn gen_expanded_code_blocks(
         entity: &Entity,
         with_serde: &WithSerde,
+        pub_use_enums: bool,
         date_time_crate: &DateTimeCrate,
         schema_name: &Option<String>,
         serde_skip_deserializing_primary_key: bool,
@@ -331,7 +337,7 @@ impl EntityWriter {
         seaography: bool,
     ) -> Vec<TokenStream> {
         let mut imports = Self::gen_import(with_serde);
-        imports.extend(Self::gen_import_active_enum(entity));
+        imports.extend(Self::gen_import_active_enum(entity, pub_use_enums));
         let mut code_blocks = vec![
             imports,
             Self::gen_entity_struct(),
@@ -365,6 +371,7 @@ impl EntityWriter {
     pub fn gen_compact_code_blocks(
         entity: &Entity,
         with_serde: &WithSerde,
+        pub_use_enums: bool,
         date_time_crate: &DateTimeCrate,
         schema_name: &Option<String>,
         serde_skip_deserializing_primary_key: bool,
@@ -374,7 +381,7 @@ impl EntityWriter {
         seaography: bool,
     ) -> Vec<TokenStream> {
         let mut imports = Self::gen_import(with_serde);
-        imports.extend(Self::gen_import_active_enum(entity));
+        imports.extend(Self::gen_import_active_enum(entity, pub_use_enums));
         let mut code_blocks = vec![
             imports,
             Self::gen_compact_model_struct(
@@ -456,7 +463,7 @@ impl EntityWriter {
         }
     }
 
-    pub fn gen_import_active_enum(entity: &Entity) -> TokenStream {
+    pub fn gen_import_active_enum(entity: &Entity, pub_use_enums: bool) -> TokenStream {
         entity
             .columns
             .iter()
@@ -468,9 +475,15 @@ impl EntityWriter {
                             enums.push(name);
                             let enum_name =
                                 format_ident!("{}", name.to_string().to_upper_camel_case());
-                            ts.extend([quote! {
-                                use super::sea_orm_active_enums::#enum_name;
-                            }]);
+                            if pub_use_enums {
+                                ts.extend([quote! {
+                                    pub use super::sea_orm_active_enums::#enum_name;
+                                }]);
+                            } else {
+                                ts.extend([quote! {
+                                    use super::sea_orm_active_enums::#enum_name;
+                                }]);
+                            }
                         }
                     }
                     (ts, enums)
@@ -1451,6 +1464,7 @@ mod tests {
                 EntityWriter::gen_expanded_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &None,
                     false,
@@ -1472,6 +1486,7 @@ mod tests {
                 EntityWriter::gen_expanded_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("public".to_owned()),
                     false,
@@ -1493,6 +1508,7 @@ mod tests {
                 EntityWriter::gen_expanded_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("schema_name".to_owned()),
                     false,
@@ -1552,6 +1568,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &None,
                     false,
@@ -1573,6 +1590,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("public".to_owned()),
                     false,
@@ -1594,6 +1612,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("schema_name".to_owned()),
                     false,
@@ -1627,6 +1646,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1643,6 +1663,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::Serialize,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1659,6 +1680,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::Deserialize,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 true,
@@ -1673,6 +1695,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::Both,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 true,
@@ -1689,6 +1712,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1705,6 +1729,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::Serialize,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1721,6 +1746,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::Deserialize,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 true,
@@ -1735,6 +1761,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::Both,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 true,
@@ -1816,6 +1843,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1832,6 +1860,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1859,6 +1888,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1873,6 +1903,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1889,6 +1920,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1907,6 +1939,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1923,6 +1956,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1939,6 +1973,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -1984,6 +2019,7 @@ mod tests {
             dyn Fn(
                 &Entity,
                 &WithSerde,
+                bool,
                 &DateTimeCrate,
                 &Option<String>,
                 bool,
@@ -2015,6 +2051,7 @@ mod tests {
         let generated = generator(
             cake_entity,
             &entity_serde_variant.1,
+            false,
             &DateTimeCrate::Chrono,
             &entity_serde_variant.2,
             serde_skip_deserializing_primary_key,
@@ -2047,6 +2084,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2063,6 +2101,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2079,6 +2118,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_compact_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2097,6 +2137,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2113,6 +2154,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2129,6 +2171,7 @@ mod tests {
             generated_to_string(EntityWriter::gen_expanded_code_blocks(
                 &cake_entity,
                 &WithSerde::None,
+                false,
                 &DateTimeCrate::Chrono,
                 &None,
                 false,
@@ -2222,6 +2265,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &None,
                     false,
@@ -2243,6 +2287,7 @@ mod tests {
                 EntityWriter::gen_compact_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("public".to_owned()),
                     false,
@@ -2264,6 +2309,7 @@ mod tests {
                 EntityWriter::gen_expanded_code_blocks(
                     entity,
                     &crate::WithSerde::None,
+                    false,
                     &crate::DateTimeCrate::Chrono,
                     &Some("schema_name".to_owned()),
                     false,
@@ -2395,7 +2441,7 @@ mod tests {
                 use super::sea_orm_active_enums::TeaEnum;
             )
             .to_string(),
-            EntityWriter::gen_import_active_enum(&entities[0]).to_string()
+            EntityWriter::gen_import_active_enum(&entities[0], false).to_string()
         );
 
         assert_eq!(
@@ -2404,7 +2450,16 @@ mod tests {
                 use super::sea_orm_active_enums::TeaSize;
             )
             .to_string(),
-            EntityWriter::gen_import_active_enum(&entities[1]).to_string()
+            EntityWriter::gen_import_active_enum(&entities[1], false).to_string()
+        );
+
+        assert_eq!(
+            quote!(
+                pub use super::sea_orm_active_enums::TeaEnum;
+                pub use super::sea_orm_active_enums::TeaSize;
+            )
+            .to_string(),
+            EntityWriter::gen_import_active_enum(&entities[1], true).to_string()
         );
 
         Ok(())
