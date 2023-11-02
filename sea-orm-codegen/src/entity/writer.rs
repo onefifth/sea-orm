@@ -476,14 +476,9 @@ impl EntityWriter {
                             let enum_name =
                                 format_ident!("{}", name.to_string().to_upper_camel_case());
                             if pub_use_enums {
-                                ts.extend([quote! {
-                                    pub use super::sea_orm_active_enums::#enum_name;
-                                }]);
-                            } else {
-                                ts.extend([quote! {
-                                    use super::sea_orm_active_enums::#enum_name;
-                                }]);
+                                ts.extend(quote! {pub});
                             }
+                            ts.extend(quote! {use super::sea_orm_active_enums::#enum_name;});
                         }
                     }
                     (ts, enums)
