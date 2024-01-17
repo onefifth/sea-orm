@@ -37,6 +37,7 @@ If you have built an app using SeaORM and want to showcase it, feel free to open
 #### Social
 - [aeroFans](https://github.com/naryand/aerofans) | Full stack forum-like social media platform in Rust and WebAssembly | DB: Postgres
 - [Crab Fit](https://crab.fit) [![GitHub stars](https://img.shields.io/github/stars/GRA0007/crab.fit.svg?style=social)](https://github.com/GRA0007/crab.fit) | Align your schedules to find the perfect time that works for everyone. | DB: MySQL, Postgres, SQLite
+- [Hatsu](https://github.com/importantimport/hatsu) | 🩵 Self-hosted & Fully-automated ActivityPub Bridge for Static Sites. | DB: SQLite, Postgres
 - [JinShu](https://github.com/gengteng/jinshu) | A cross-platform **I**nstant **M**essaging system written in 🦀 | DB: MySQL, Postgres
 - [Portfolio](https://github.com/admisio/Portfolio) | Encrypted high school 🏫 admissions service | DB: Postgres, SQLite
 - [THUBurrow](https://github.com/BobAnkh/THUBurrow) | A campus forum built by Next.js and Rocket | DB: Postgres
@@ -97,12 +98,10 @@ If you have built an app using SeaORM and want to showcase it, feel free to open
 
 ### Frameworks
 
-- [actix-admin](https://github.com/mgugger/actix-admin/) | An admin panel for Actix Web built with Tera, HTMX and SeaOrm | DB: MySQL, Postgres, SQLite
-- [awto](https://github.com/awto-rs/awto) | Awtomate your 🦀 microservices with awto | DB: Postgres
+- [actix-admin](https://github.com/mgugger/actix-admin) | An admin panel for Actix Web built with Tera, HTMX and SeaOrm | DB: MySQL, Postgres, SQLite
 - [poem_admin](https://github.com/lingdu1234/poem_admin) | An admin panel built with poems, SeaORM and Vue 3. | DB: MySQL, Postgres, SQLite
-- [Quasar](https://github.com/Technik97/Quasar) | Rust REST API using Actix Web, SeaORM and Postgres with Svelte Typescript Frontend | DB: Postgres
+- [Loco.rs](https://github.com/loco-rs/loco) | A full stack Web and API productivity framework similar to Rails, based on SeaORM with db tooling and migrations code generation | DB: Postgres, SQLite
 - [tardis](https://github.com/ideal-world/tardis) | Elegant, Clean Rust development framework🛸 | DB: MySQL, Postgres, SQLite
-- [ZAPP](https://zapp.epics.dev) ([repository](https://github.com/EpicsDAO/zapp)) | ZAPP is a serverless framework made by Rust. Quickly build a scalable GraphQL API web server.
 
 ### Scaffolding
 
